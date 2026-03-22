@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mon App",
-  description: "Application Next.js avec Supabase",
+  title: "Martinique - L'île aux fleurs",
+  description: "Bienvenue en Martinique, découvrez l'île aux fleurs des Caraïbes",
 };
 
 export default function RootLayout({
