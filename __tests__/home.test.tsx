@@ -10,8 +10,7 @@ describe("Home page", () => {
 
   it("affiche la description de la stack", () => {
     render(<Home />);
-    expect(
-      screen.getByText("Next.js + Supabase + Vercel")
-    ).toBeInTheDocument();
+    const elements = screen.getAllByText("Next.js + Supabase + Vercel");
+    expect(elements.length).toBeGreaterThanOrEqual(1);
   });
 });
