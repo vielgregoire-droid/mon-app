@@ -1,80 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-turquoise: #00b4d8;
-  --color-turquoise-dark: #0077b6;
-  --color-turquoise-light: #90e0ef;
-  --color-sand: #f4e8c1;
-  --color-sand-dark: #ddb892;
-  --color-tropical-green: #2d6a4f;
-  --color-tropical-green-light: #52b788;
-  --color-sunset-orange: #f48c06;
-  --color-sunset-red: #e63946;
-  --color-volcano: #6b4226;
+  --color-primary: #6366f1;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4f46e5;
+  --color-sidebar: #1e1b4b;
+  --color-sidebar-hover: #312e81;
+  --color-sidebar-active: #3730a3;
+  --color-surface: #f8fafc;
+  --color-card: #ffffff;
+  --color-muted: #64748b;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes wave {
-  0%, 100% { transform: translateX(0) translateY(0); }
-  25% { transform: translateX(-5px) translateY(-3px); }
-  50% { transform: translateX(0) translateY(-5px); }
-  75% { transform: translateX(5px) translateY(-3px); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.8s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-1 {
-  animation: fade-in-up 0.8s ease-out 0.2s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-2 {
-  animation: fade-in-up 0.8s ease-out 0.4s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-3 {
-  animation: fade-in-up 0.8s ease-out 0.6s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-4 {
-  animation: fade-in-up 0.8s ease-out 0.8s forwards;
-  opacity: 0;
-}
-
-.animate-wave {
-  animation: wave 3s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
-}
+/* Status colors */
+.status-lead { background-color: #94a3b8; color: white; }
+.status-recruit { background-color: #8b5cf6; color: white; }
+.status-onboarding { background-color: #3b82f6; color: white; }
+.status-activated { background-color: #06b6d4; color: white; }
+.status-active { background-color: #10b981; color: white; }
+.status-top-seller { background-color: #f59e0b; color: white; }
+.status-at-risk { background-color: #f97316; color: white; }
+.status-churned { background-color: #ef4444; color: white; }

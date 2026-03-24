@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "Martinique - L'île aux fleurs",
-  description: "Bienvenue en Martinique, découvrez l'île aux fleurs des Caraïbes",
+  title: "SAH Dashboard",
+  description: "Sales performance dashboard",
 };
 
 export default function RootLayout({
@@ -13,7 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased bg-surface">
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <main className="flex-1 ml-64">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }
