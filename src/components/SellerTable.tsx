@@ -40,8 +40,8 @@ export default function SellerTable({ sellers }: SellerTableProps) {
   }
 
   function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <span className="text-gray-300 ml-1">↕</span>;
-    return <span className="text-primary ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+    if (sortKey !== col) return <span className="text-tw-accent/30 ml-1">↕</span>;
+    return <span className="text-tw-primary ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
   function formatCurrency(val: number) {
@@ -49,44 +49,44 @@ export default function SellerTable({ sellers }: SellerTableProps) {
   }
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+    <div className="bg-card rounded-xl shadow-sm border border-tw-accent/10 overflow-hidden">
+      <div className="px-6 py-4 border-b border-tw-accent/10 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-tw-dark uppercase tracking-wider">
           Profils vendeurs
-          <span className="text-muted font-normal ml-2">({sellers.length})</span>
+          <span className="text-muted font-normal normal-case tracking-normal ml-2">({sellers.length})</span>
         </h3>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-left">
-              <th className="px-6 py-3 text-xs font-medium text-muted uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => toggleSort("full_name")}>
+            <tr className="bg-tw-bg/50 text-left">
+              <th className="px-6 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider cursor-pointer hover:text-tw-dark" onClick={() => toggleSort("full_name")}>
                 Vendeur <SortIcon col="full_name" />
               </th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider">Pays</th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => toggleSort("pipeline_status")}>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider">Pays</th>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider cursor-pointer hover:text-tw-dark" onClick={() => toggleSort("pipeline_status")}>
                 Statut <SortIcon col="pipeline_status" />
               </th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider">Rôle</th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider text-right cursor-pointer hover:text-gray-700" onClick={() => toggleSort("total_sales")}>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider">Rôle</th>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider text-right cursor-pointer hover:text-tw-dark" onClick={() => toggleSort("total_sales")}>
                 CA TTC <SortIcon col="total_sales" />
               </th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider text-right cursor-pointer hover:text-gray-700" onClick={() => toggleSort("order_count")}>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider text-right cursor-pointer hover:text-tw-dark" onClick={() => toggleSort("order_count")}>
                 Commandes <SortIcon col="order_count" />
               </th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => toggleSort("created_at")}>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider cursor-pointer hover:text-tw-dark" onClick={() => toggleSort("created_at")}>
                 Inscrit le <SortIcon col="created_at" />
               </th>
-              <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wider">Manager</th>
+              <th className="px-4 py-3 text-xs font-semibold text-tw-dark/60 uppercase tracking-wider">Manager</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-tw-accent/5">
             {paginated.map((seller) => (
-              <tr key={`${seller.environment_raw}-${seller.id}`} className="hover:bg-gray-50/50 transition-colors">
+              <tr key={`${seller.environment_raw}-${seller.id}`} className="hover:bg-tw-bg/30 transition-colors">
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${seller.is_active ? "bg-primary" : "bg-gray-300"}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${seller.is_active ? "bg-tw-primary text-tw-accent-light" : "bg-gray-200 text-gray-500"}`}>
                       {seller.first_name.charAt(0)}{seller.last_name.charAt(0)}
                     </div>
                     <div>
@@ -96,24 +96,24 @@ export default function SellerTable({ sellers }: SellerTableProps) {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-tw-bg text-tw-dark">
                     {seller.environment}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={seller.pipeline_status} />
                 </td>
-                <td className="px-4 py-3 text-gray-600">{seller.standard_status}</td>
-                <td className="px-4 py-3 text-right font-medium text-gray-900">
-                  {seller.total_sales > 0 ? formatCurrency(seller.total_sales) : "-"}
+                <td className="px-4 py-3 text-gray-600 text-xs">{seller.standard_status}</td>
+                <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                  {seller.total_sales > 0 ? formatCurrency(seller.total_sales) : <span className="text-gray-300">-</span>}
                 </td>
                 <td className="px-4 py-3 text-right text-gray-600">
-                  {seller.order_count > 0 ? seller.order_count : "-"}
+                  {seller.order_count > 0 ? seller.order_count : <span className="text-gray-300">-</span>}
                 </td>
-                <td className="px-4 py-3 text-gray-600 text-xs">
+                <td className="px-4 py-3 text-gray-500 text-xs">
                   {seller.created_at ? seller.created_at.split(" ")[0] : "-"}
                 </td>
-                <td className="px-4 py-3 text-gray-600 text-xs">
+                <td className="px-4 py-3 text-gray-500 text-xs truncate max-w-[150px]">
                   {seller.manager_full_name || "-"}
                 </td>
               </tr>
@@ -124,7 +124,7 @@ export default function SellerTable({ sellers }: SellerTableProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-6 py-3 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-3 border-t border-tw-accent/10 flex items-center justify-between bg-tw-bg/30">
           <p className="text-xs text-muted">
             {page * pageSize + 1}-{Math.min((page + 1) * pageSize, sellers.length)} sur {sellers.length}
           </p>
@@ -132,7 +132,7 @@ export default function SellerTable({ sellers }: SellerTableProps) {
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="px-3 py-1 text-xs rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-xs rounded-lg border border-tw-accent/15 hover:bg-tw-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               ←
             </button>
@@ -143,10 +143,10 @@ export default function SellerTable({ sellers }: SellerTableProps) {
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`px-3 py-1 text-xs rounded border ${
+                  className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
                     p === page
-                      ? "bg-primary text-white border-primary"
-                      : "border-gray-200 hover:bg-gray-50"
+                      ? "bg-tw-primary text-white border-tw-primary"
+                      : "border-tw-accent/15 hover:bg-tw-bg"
                   }`}
                 >
                   {p + 1}
@@ -156,7 +156,7 @@ export default function SellerTable({ sellers }: SellerTableProps) {
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1 text-xs rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-xs rounded-lg border border-tw-accent/15 hover:bg-tw-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               →
             </button>
