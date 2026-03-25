@@ -1,22 +1,30 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import sellersData from "@/data/sellers.json";
-import { Seller, PipelineStatus, COUNTRIES, COUNTRY_LABELS } from "@/lib/types";
+import { useState, useMemo, useEffect } from "react";
+import { Seller, PipelineStatus, COUNTRIES, COUNTRY_LABELS, PIPELINE_GROUPS } from "@/lib/types";
 import KpiCard from "@/components/KpiCard";
 import PipelineBar from "@/components/PipelineBar";
 import SellerTable from "@/components/SellerTable";
-
-const allSellers = sellersData as Seller[];
 
 function formatCurrency(val: number) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(val);
 }
 
 export default function VendeursPage() {
+  const [allSellers, setAllSellers] = useState<Seller[]>([]);
+  const [loading, setLoading] = useState(true);
   const [country, setCountry] = useState<string>("ALL");
   const [activeStatus, setActiveStatus] = useState<PipelineStatus | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/sellers")
+      .then((r) => r.json())
+      .then((data) => setAllSellers(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     let result = allSellers;
@@ -27,18 +35,34 @@ export default function VendeursPage() {
       result = result.filter((s) => s.full_name.toLowerCase().includes(q) || s.id.toString().includes(q));
     }
     return result;
-  }, [country, activeStatus, searchQuery]);
+  }, [allSellers, country, activeStatus, searchQuery]);
 
   const countryFiltered = useMemo(() => {
     if (country === "ALL") return allSellers;
     return allSellers.filter((s) => s.environment === country);
-  }, [country]);
+  }, [allSellers, country]);
 
   const totalSellers = countryFiltered.length;
-  const activeSellers = countryFiltered.filter((s) => s.is_active).length;
+  const activeSellers = countryFiltered.filter((s) => s.pipeline_status === "Active").length;
   const totalSales = countryFiltered.reduce((a, s) => a + s.total_sales, 0);
-  const avgSalesPerSeller = activeSellers > 0 ? totalSales / activeSellers : 0;
-  const newRecruits = countryFiltered.filter((s) => s.pipeline_status === "Recruit" || s.pipeline_status === "Onboarding").length;
+
+  // Onboarding urgent : recrues < 14j + 14-30j + 30-90j sans vente
+  const urgentCount = countryFiltered.filter((s) =>
+    s.pipeline_status === "Onboarding Urgent" || s.pipeline_status === "En Risque" || s.pipeline_status === "Critique"
+  ).length;
+
+  // Churn total (rattrapables + dernière chance)
+  const churnCount = countryFiltered.filter((s) =>
+    s.pipeline_status === "Churn Rescue" || s.pipeline_status === "Churn Emergency"
+  ).length;
+
+  const activationRate = useMemo(() => {
+    const onboardingStatuses = PIPELINE_GROUPS.onboarding.statuses;
+    const inOnboarding = countryFiltered.filter((s) => onboardingStatuses.includes(s.pipeline_status));
+    if (inOnboarding.length === 0) return 0;
+    const activated = inOnboarding.filter((s) => s.pipeline_status === "Activated").length;
+    return Math.round((activated / inOnboarding.length) * 100);
+  }, [countryFiltered]);
 
   const pipelineCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -58,20 +82,6 @@ export default function VendeursPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm rounded-lg border border-tw-accent/20 bg-white focus:outline-none focus:ring-2 focus:ring-tw-accent/30 focus:border-tw-accent w-52 transition-all"
-            />
-          </div>
-
           {/* Country filter */}
           <select
             value={country}
@@ -86,11 +96,11 @@ export default function VendeursPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard
           label="Total vendeurs"
           value={totalSellers.toLocaleString("fr-FR")}
-          subtitle={`${activeSellers} actifs`}
+          subtitle={`${activeSellers} actives`}
           accentClass="text-tw-primary"
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +111,6 @@ export default function VendeursPage() {
         <KpiCard
           label="CA Total TTC"
           value={formatCurrency(totalSales)}
-          subtitle="4 derniers mois"
           accentClass="text-success"
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,24 +119,36 @@ export default function VendeursPage() {
           }
         />
         <KpiCard
-          label="CA moyen / actif"
-          value={formatCurrency(avgSalesPerSeller)}
-          subtitle={`sur ${activeSellers} vendeurs actifs`}
-          accentClass="text-tw-accent"
+          label="À relancer (onboarding)"
+          value={urgentCount.toLocaleString("fr-FR")}
+          subtitle={`${activationRate}% taux d'activation`}
+          accentClass="text-red-500"
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
           }
         />
         <KpiCard
-          label="Nouvelles recrues"
-          value={newRecruits}
-          subtitle="Recruit + Onboarding"
-          accentClass="text-violet-500"
+          label="Actives"
+          value={activeSellers.toLocaleString("fr-FR")}
+          subtitle={`${totalSellers > 0 ? Math.round((activeSellers / totalSellers) * 100) : 0}% du total`}
+          accentClass="text-tw-accent"
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+        <KpiCard
+          label="En churn"
+          value={churnCount.toLocaleString("fr-FR")}
+          subtitle="Rescue + Emergency"
+          accentClass="text-warning"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.601a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" />
             </svg>
           }
         />
@@ -135,11 +156,11 @@ export default function VendeursPage() {
 
       {/* Pipeline */}
       <div className="mb-6">
-        <PipelineBar counts={pipelineCounts} activeStatus={activeStatus} onStatusClick={setActiveStatus} />
+        <PipelineBar counts={pipelineCounts} activeStatus={activeStatus} onStatusClick={(s) => setActiveStatus(s as PipelineStatus | null)} />
       </div>
 
       {/* Seller Table */}
-      <SellerTable sellers={filtered} />
+      <SellerTable sellers={filtered} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
     </div>
   );
 }

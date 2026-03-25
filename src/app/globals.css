@@ -22,15 +22,14 @@
   --color-info: #0d9488;
 }
 
-/* Status colors */
-.status-lead { background-color: #94a3b8; color: white; }
-.status-recruit { background-color: #7c3aed; color: white; }
-.status-onboarding { background-color: #0d9488; color: white; }
-.status-activated { background-color: #06b6d4; color: white; }
-.status-active { background-color: #10b981; color: white; }
-.status-top-seller { background-color: #f59e0b; color: white; }
-.status-at-risk { background-color: #f97316; color: white; }
-.status-churned { background-color: #ef4444; color: white; }
+/* Slide-in animation for panels */
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
