@@ -29,59 +29,66 @@ export default function CommandesPage() {
   const [dateEnd, setDateEnd] = useState(defaultRange.end);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<{ totalOrders: number; totalCA: number; avgBasket: number; cancelRate: string; webPct: string; statusCounts: Record<string, number> } | null>(null);
 
-  // Load orders when country or dates change — filtered server-side
-  const loadOrders = useCallback(async (env: string, ds: string, de: string) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (env !== "ALL") params.set("environment", env);
-      if (ds) params.set("dateStart", ds);
-      if (de) params.set("dateEnd", de + "T23:59:59");
-      const url = `/api/orders${params.toString() ? "?" + params.toString() : ""}`;
-      const res = await fetch(url);
-      const data: Order[] = await res.json();
-      setOrders(data);
-    } catch (e) {
-      console.error("Failed to load orders:", e);
-      setOrders([]);
-    }
-    setLoading(false);
+  // Build query params for both API calls
+  const buildParams = useCallback((env: string, ds: string, de: string) => {
+    const params = new URLSearchParams();
+    if (env !== "ALL") params.set("environment", env);
+    if (ds) params.set("dateStart", ds);
+    if (de) params.set("dateEnd", de + "T23:59:59");
+    return params.toString();
   }, []);
 
+  // Load stats (fast) and orders (slower) in parallel
   useEffect(() => {
-    loadOrders(country, dateStart, dateEnd);
-  }, [country, dateStart, dateEnd, loadOrders]);
+    const qs = buildParams(country, dateStart, dateEnd);
+    const url = qs ? `?${qs}` : "";
+
+    // Stats load fast — KPIs appear immediately
+    fetch(`/api/orders/stats${url}`)
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(console.error);
+
+    // Full order data for the table — slower but KPIs already visible
+    setLoading(true);
+    fetch(`/api/orders${url}`)
+      .then((r) => r.json())
+      .then((data: Order[]) => setOrders(data))
+      .catch((e) => { console.error("Failed to load orders:", e); setOrders([]); })
+      .finally(() => setLoading(false));
+  }, [country, dateStart, dateEnd, buildParams]);
 
   // Orders already filtered by date server-side
   const dateFiltered = orders;
 
-  // Compute KPIs dynamically from date-filtered orders
+  // Use server-computed stats if available, fallback to client computation
   const computedKpis = useMemo(() => {
+    if (stats) return {
+      totalOrders: stats.totalOrders,
+      totalCA: stats.totalCA,
+      avgBasket: stats.avgBasket,
+      cancelRate: Number(stats.cancelRate),
+      webPct: Number(stats.webPct),
+    };
     const total = dateFiltered.length;
     if (total === 0) return { totalOrders: 0, totalCA: 0, avgBasket: 0, cancelRate: 0, webPct: 0 };
-
     const totalCA = dateFiltered.reduce((sum, o) => sum + (o.totalAmountInclTax || 0), 0);
     const cancelCount = dateFiltered.filter((o) => o.status === "Canceled" || o.status === "PartiallyCancelled").length;
     const webCount = dateFiltered.filter((o) => o.isWebOrder).length;
+    return { totalOrders: total, totalCA, avgBasket: total > 0 ? totalCA / total : 0, cancelRate: Math.round((cancelCount / total) * 1000) / 10, webPct: Math.round((webCount / total) * 1000) / 10 };
+  }, [stats, dateFiltered]);
 
-    return {
-      totalOrders: total,
-      totalCA,
-      avgBasket: total > 0 ? totalCA / total : 0,
-      cancelRate: Math.round((cancelCount / total) * 1000) / 10,
-      webPct: Math.round((webCount / total) * 1000) / 10,
-    };
-  }, [dateFiltered]);
-
-  // Pipeline counts from date-filtered orders
+  // Pipeline counts — use server stats if available
   const pipelineCounts = useMemo(() => {
+    if (stats?.statusCounts) return stats.statusCounts;
     const counts: Record<string, number> = {};
     for (const o of dateFiltered) {
       counts[o.status] = (counts[o.status] || 0) + 1;
     }
     return counts;
-  }, [dateFiltered]);
+  }, [stats, dateFiltered]);
 
   // Fully filtered orders for table (date + status + search)
   const filtered = useMemo(() => {
