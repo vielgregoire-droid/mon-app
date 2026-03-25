@@ -141,9 +141,10 @@ async function fetchAll(supabase: Awaited<ReturnType<typeof createClient>>, tabl
   return allData;
 }
 
-export async function fetchSellers() {
+export async function fetchSellers(environment?: string) {
   const supabase = await createClient();
-  const data = await fetchAll(supabase, "sellers", "id");
+  const filter = environment && environment !== "ALL" ? { col: "environment", val: environment } : undefined;
+  const data = await fetchAll(supabase, "sellers", "id", filter);
   return data.map(mapSeller);
 }
 

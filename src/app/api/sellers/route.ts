@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { fetchSellers } from "@/lib/supabase/queries";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sellers = await fetchSellers();
+    const env = request.nextUrl.searchParams.get("environment") || undefined;
+    const sellers = await fetchSellers(env);
     return NextResponse.json(sellers);
   } catch (error) {
     console.error("Failed to fetch sellers:", error);

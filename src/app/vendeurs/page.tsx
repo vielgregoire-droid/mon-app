@@ -19,28 +19,26 @@ export default function VendeursPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/sellers")
+    const params = country !== "ALL" ? `?environment=${country}` : "";
+    fetch(`/api/sellers${params}`)
       .then((r) => r.json())
       .then((data) => setAllSellers(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [country]);
 
   const filtered = useMemo(() => {
     let result = allSellers;
-    if (country !== "ALL") result = result.filter((s) => s.environment === country);
     if (activeStatus) result = result.filter((s) => s.pipeline_status === activeStatus);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((s) => s.full_name.toLowerCase().includes(q) || s.id.toString().includes(q));
     }
     return result;
-  }, [allSellers, country, activeStatus, searchQuery]);
+  }, [allSellers, activeStatus, searchQuery]);
 
-  const countryFiltered = useMemo(() => {
-    if (country === "ALL") return allSellers;
-    return allSellers.filter((s) => s.environment === country);
-  }, [allSellers, country]);
+  // Already filtered by country server-side
+  const countryFiltered = allSellers;
 
   const totalSellers = countryFiltered.length;
   const activeSellers = countryFiltered.filter((s) => s.pipeline_status === "Active").length;
