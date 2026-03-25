@@ -147,11 +147,24 @@ export async function fetchSellers() {
   return data.map(mapSeller);
 }
 
-export async function fetchOrders(environment?: string) {
+export async function fetchOrders(environment?: string, dateStart?: string, dateEnd?: string) {
   const supabase = await createClient();
-  const filter = environment && environment !== "ALL" ? { col: "environment", val: environment } : undefined;
-  const data = await fetchAll(supabase, "orders", "date", filter, false);
-  return data.map(mapOrder);
+  const pageSize = 1000;
+  const allData: Record<string, unknown>[] = [];
+  let from = 0;
+  while (true) {
+    let query = supabase.from("orders").select("*").order("date", { ascending: false }).range(from, from + pageSize - 1);
+    if (environment && environment !== "ALL") query = query.eq("environment", environment);
+    if (dateStart) query = query.gte("date", dateStart);
+    if (dateEnd) query = query.lte("date", dateEnd);
+    const { data, error } = await query;
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allData.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return allData.map(mapOrder);
 }
 
 export async function fetchLeads() {

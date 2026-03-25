@@ -30,11 +30,15 @@ export default function CommandesPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Load orders when country changes
-  const loadOrders = useCallback(async (env: string) => {
+  // Load orders when country or dates change — filtered server-side
+  const loadOrders = useCallback(async (env: string, ds: string, de: string) => {
     setLoading(true);
     try {
-      const url = env === "ALL" ? "/api/orders" : `/api/orders?environment=${env}`;
+      const params = new URLSearchParams();
+      if (env !== "ALL") params.set("environment", env);
+      if (ds) params.set("dateStart", ds);
+      if (de) params.set("dateEnd", de + "T23:59:59");
+      const url = `/api/orders${params.toString() ? "?" + params.toString() : ""}`;
       const res = await fetch(url);
       const data: Order[] = await res.json();
       setOrders(data);
@@ -46,16 +50,11 @@ export default function CommandesPage() {
   }, []);
 
   useEffect(() => {
-    loadOrders(country);
-  }, [country, loadOrders]);
+    loadOrders(country, dateStart, dateEnd);
+  }, [country, dateStart, dateEnd, loadOrders]);
 
-  // Date-filtered orders (for KPIs and pipeline - before status/search filters)
-  const dateFiltered = useMemo(() => {
-    let result = orders;
-    if (dateStart) result = result.filter((o) => o.date >= dateStart);
-    if (dateEnd) result = result.filter((o) => o.date <= dateEnd + "T23:59:59");
-    return result;
-  }, [orders, dateStart, dateEnd]);
+  // Orders already filtered by date server-side
+  const dateFiltered = orders;
 
   // Compute KPIs dynamically from date-filtered orders
   const computedKpis = useMemo(() => {
